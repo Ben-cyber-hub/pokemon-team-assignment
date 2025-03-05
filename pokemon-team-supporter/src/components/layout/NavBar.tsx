@@ -14,7 +14,7 @@ const NavBar = () => {
               <img 
                 src={pokeball} 
                 alt="Pokeball" 
-                className="w-12 h-12 object-contain p-1" // Increased size and added padding
+                className="w-12 h-12 object-contain p-1 filter brightness-0 invert"
               />
               <span>Pokemon Teams</span>
             </Link>
