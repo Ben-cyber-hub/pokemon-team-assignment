@@ -2,8 +2,11 @@
 
 idea.txt
 full_plan.md
+/.vscode
+.env
 
 # dependencies
+/pokemon-team-supporter/node_modules
 /node_modules
 /.pnp
 .pnp.js
