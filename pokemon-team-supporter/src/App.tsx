@@ -1,25 +1,29 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import NavBar from './components/layout/NavBar';
+import { Home } from './pages/Home';
+import { Pokedex } from './pages/Pokedex';
+import { Teams } from './pages/Teams';
+import { TeamDetails } from './pages/TeamDetails';
+import { NotFound } from './pages/NotFound';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="min-h-screen bg-gray-100">
+        <NavBar />
+        <main className="container mx-auto px-4 py-8">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/pokedex" element={<Pokedex />} />
+            <Route path="/teams" element={<Teams />} />
+            <Route path="/teams/:id" element={<TeamDetails />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
