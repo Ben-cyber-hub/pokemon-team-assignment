@@ -10,27 +10,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
     env:
       REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
       REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
-      CI: true
+    
+    defaults:
+      run:
+        working-directory: ./pokemon-team-supporter
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
+      - uses: actions/checkout@v3
+      
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build application
-        run: npm run build
-        
-      - name: Run tests
-        run: npm test
+          cache-dependency-path: './pokemon-team-supporter/package-lock.json'
+      
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
