@@ -16,6 +16,7 @@ full_plan.md
 
 # production
 /build
+/pokemon-team-supporter/build
 
 # misc
 .DS_Store
@@ -27,3 +28,6 @@ full_plan.md
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Local Netlify folder
+.netlify
