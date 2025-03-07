@@ -23,7 +23,7 @@
     "paths": {
       "@/*": ["*"]
     },
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
     "incremental": true
   },

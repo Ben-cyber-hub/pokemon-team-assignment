@@ -6,7 +6,6 @@ full_plan.md
 .env
 
 # dependencies
-/pokemon-team-supporter/node_modules
 /node_modules
 /.pnp
 .pnp.js
@@ -15,7 +14,7 @@ full_plan.md
 /coverage
 
 # production
-/build
+build
 
 # misc
 .DS_Store

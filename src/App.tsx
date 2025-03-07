@@ -10,7 +10,7 @@ import { NotFound } from './pages/NotFound';
 
 function App() {
   return (
-    <Router>
+    <Router basename={process.env.PUBLIC_URL}>
       <div className="min-h-screen bg-gray-100">
         <NavBar />
         <main className="container mx-auto px-4 py-8">
