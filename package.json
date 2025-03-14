@@ -38,7 +38,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test --watchAll=false",
+    "test": "react-scripts test --silent --verbose=false --json --outputFile=test-results.json && node scripts/showFailedTests.js",
     "test:coverage": "react-scripts test --coverage --watchAll=false",
     "test:watch": "react-scripts test",
     "eject": "react-scripts eject",
@@ -60,8 +60,11 @@
       }
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!(@testing-library|msw)/)"
-    ]
+      "node_modules/(?!(@tanstack|axios)/)"
+    ],
+    "moduleNameMapper": {
+      "^axios$": "<rootDir>/node_modules/axios/dist/axios.js"
+    }
   },
   "eslintConfig": {
     "extends": [

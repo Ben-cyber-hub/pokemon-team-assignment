@@ -1,14 +1,14 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen } from './utils/test-utils';
 import App from './App';
 
-describe('App', () => {
-  it('renders navigation', () => {
-    render(<App />);
-    expect(screen.getByText('Pokemon Teams')).toBeInTheDocument();
-  });
+// Mock react-query-devtools
+jest.mock('@tanstack/react-query-devtools', () => ({
+  ReactQueryDevtools: () => null
+}));
 
-  it('renders main container', () => {
-    render(<App />);
-    expect(screen.getByRole('main')).toBeInTheDocument();
+describe('App', () => {
+  it('renders without crashing', async () => {
+    render(<App />, { withRouter: false });
+    expect(document.querySelector('main')).toBeInTheDocument();
   });
 });

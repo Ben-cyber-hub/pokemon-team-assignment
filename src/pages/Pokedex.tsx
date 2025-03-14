@@ -168,6 +168,7 @@ export const Pokedex = () => {
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
         {/* Generation selector */}
         <select
+          aria-label="generation"
           value={generation}
           onChange={(e) => setGeneration(e.target.value as Generation)}
           className="w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -180,6 +181,7 @@ export const Pokedex = () => {
 
         {/* Type filter */}
         <select
+          aria-label="type"
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value as PokemonType | '')}
           className="w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
