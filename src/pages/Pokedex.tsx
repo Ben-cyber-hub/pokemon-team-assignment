@@ -1,163 +1,69 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useQueries } from '@tanstack/react-query';
-import { getPokemonByName, searchPokemon, getPokemonList } from '../services/pokemonAPI';
-import { Pokemon, Generation } from '../types/pokemon.types';
+import { useState, useEffect } from 'react';
+import { usePokemonData } from '../hooks/usePokemonData';
+import { Pokemon, Generation, PokemonType } from '../types/pokemon.types';
 import { useDebounce } from '../hooks/useDebounce';
 import { PokemonCard } from '../components/pokemon/pokemonCard';
 
-const POKEMON_TYPES = [
-  'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground',
-  'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
-] as const;
+// Move constants to a separate file
+import { POKEMON_TYPES, GENERATION_LABELS, PAGE_SIZE } from '../constants/pokemon';
 
-type PokemonType = typeof POKEMON_TYPES[number];
+// TODO: Import these when implementing team building
+// import { useTeam } from '../hooks/useTeam';
+// import { useAuth } from '../hooks/useAuth';
 
-const POKEMON_PER_ROW = 6;
-const ROWS_PER_PAGE = 4;
-const PAGE_SIZE = POKEMON_PER_ROW * ROWS_PER_PAGE;
-
-const GENERATION_LABELS: Record<Generation, string> = {
-  gen1: 'Generation I',
-  gen2: 'Generation II',
-  gen3: 'Generation III',
-  gen4: 'Generation IV',
-  gen5: 'Generation V',
-  gen6: 'Generation VI',
-  gen7: 'Generation VII',
-  gen8: 'Generation VIII',
-  gen9: 'Generation IX',
-};
-
-// Reusable pagination component
-const PaginationControls = ({ page, setPage }: { page: number; setPage: (page: number) => void }) => {
-  const [inputPage, setInputPage] = useState(page.toString());
-
-  const handleGoToPage = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newPage = parseInt(inputPage);
-    if (!isNaN(newPage) && newPage > 0) {
-      setPage(newPage);
-    }
-    // Reset input to current page if invalid
-    setInputPage(page.toString());
-  };
-
-  return (
-    <div className="flex justify-center items-center gap-4 py-4">
-      <button 
-        className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-300 hover:bg-blue-600"
-        onClick={() => setPage(Math.max(1, page - 1))}
-        disabled={page === 1}
-      >
-        Previous
-      </button>
-      
-      <form onSubmit={handleGoToPage} className="flex items-center gap-2">
-        <label className="text-sm">
-          Page
-          <input
-            type="number"
-            min="1"
-            value={inputPage}
-            onChange={(e) => setInputPage(e.target.value)}
-            className="w-16 px-2 py-1 ml-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </label>
-        <button
-          type="submit"
-          className="px-2 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Go
-        </button>
-      </form>
-
-      <button 
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        onClick={() => setPage(page + 1)}
-      >
-        Next
-      </button>
-    </div>
-  );
-};
+// Separate PaginationControls into its own component file
+import { PaginationControls } from '../components/common/PaginationControls';
 
 export const Pokedex = () => {
+  // Basic state
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [generation, setGeneration] = useState<Generation>('gen1');
   const [selectedType, setSelectedType] = useState<PokemonType | ''>('');
+  
+  // TODO: Add these when implementing team building
+  // const { user } = useAuth();
+  // const { addPokemonToTeam, isTeamBuilding } = useTeam();
+
   const debouncedSearch = useDebounce(searchTerm, 300);
 
-  // Fetch paginated list when not searching
   const { 
-    data: pokemonList, 
-    isLoading: isLoadingList, 
-    error: listError 
-  } = useQuery(
-    ['pokemonList', page, generation],
-    () => getPokemonList({ page, limit: PAGE_SIZE, generation }),
-    {
-      enabled: !debouncedSearch,
-      keepPreviousData: true,
-    }
-  );
-  // Fetch search results when searching
-  const {
-    data: searchResults,
-    isLoading: isLoadingSearch,
-    error: searchError
-  } = useQuery(
-    ['pokemon', 'search', debouncedSearch],
-    () => searchPokemon(debouncedSearch),
-    {
-      enabled: !!debouncedSearch,
-      keepPreviousData: true,
-    }
-  );
-
-  // Fetch details for paginated Pokemon
-  const pokemonQueries = useQueries({
-    queries: (!debouncedSearch && pokemonList?.results ? pokemonList.results : []).map(pokemon => ({
-      queryKey: ['pokemon', pokemon.name],
-      queryFn: () => getPokemonByName(pokemon.name),
-      staleTime: 5 * 60 * 1000,
-    }))
+    pokemon: displayedPokemon, 
+    isLoading, 
+    totalPages,
+    totalPokemon 
+  } = usePokemonData({
+    generation,
+    selectedType,
+    searchTerm: debouncedSearch,
+    page,
+    pageSize: PAGE_SIZE
   });
 
-  const isLoadingDetails = pokemonQueries.some(query => query.isLoading);
-  const detailsError = pokemonQueries.find(query => query.error);
-
-  // Get Pokemon to display based on search or pagination
-  const displayedPokemon = useMemo(() => {
-    const pokemon = debouncedSearch ? (searchResults || []) : 
-      pokemonQueries
-        .map(query => query.data)
-        .filter((pokemon): pokemon is Pokemon => pokemon !== undefined);
-  
-    // Apply type filter if selected
-    if (selectedType && !debouncedSearch) {
-      return (pokemon as Pokemon[]).filter(p => 
-        p.types.some(t => t.type.name === selectedType)
-      );
+  const handlePokemonClick = (pokemon: Pokemon) => {
+    // TODO: Implement Pokemon selection for team building
+    console.log('Selected Pokemon:', pokemon);
+    /* 
+    Future implementation:
+    if (!user) {
+      navigate('/login');
+      return;
     }
 
-    return pokemon || [];
-  }, [debouncedSearch, searchResults, pokemonQueries, selectedType]);
-
-  // Handle Pokemon selection
-  const handlePokemonClick = (pokemon: Pokemon) => {
-    console.log('Selected:', pokemon.name);
-    // TODO: Implement Pokemon selection logic
+    if (isTeamBuilding) {
+      addPokemonToTeam(pokemon);
+    } else {
+      showPokemonDetails(pokemon);
+    }
+    */
   };
 
-  // Show loading states
-  if ((debouncedSearch && isLoadingSearch) || (!debouncedSearch && (isLoadingList || isLoadingDetails))) {
-    return <div className="text-center">Loading Pokémon...</div>;
-  }
+  useEffect(() => {
+    setPage(1);
+  }, [generation, selectedType, debouncedSearch]);
 
-  // Show error states
-  if ((debouncedSearch && searchError) || (!debouncedSearch && (listError || detailsError))) {
-    return <div className="text-center text-red-500">Error loading Pokémon</div>;
+  if (isLoading) {
+    return <div className="text-center">Loading Pokémon...</div>;
   }
 
   return (
@@ -166,26 +72,22 @@ export const Pokedex = () => {
       
       {/* Filters section */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        {/* Generation selector */}
         <select
           aria-label="generation"
           value={generation}
           onChange={(e) => setGeneration(e.target.value as Generation)}
           className="w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          disabled={!!debouncedSearch}
         >
           {Object.entries(GENERATION_LABELS).map(([value, label]) => (
             <option key={value} value={value}>{label}</option>
           ))}
         </select>
 
-        {/* Type filter */}
         <select
           aria-label="type"
           value={selectedType}
           onChange={(e) => setSelectedType(e.target.value as PokemonType | '')}
           className="w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          disabled={!!debouncedSearch}
         >
           <option value="">All Types</option>
           {POKEMON_TYPES.map(type => (
@@ -222,8 +124,19 @@ export const Pokedex = () => {
         </div>
       </div>
 
+      {/* Results summary */}
+      <div className="text-center mb-4 text-gray-600">
+        Showing {displayedPokemon.length} of {totalPokemon} Pokémon
+      </div>
+
       {/* Show pagination only when not searching */}
-      {!debouncedSearch && <PaginationControls page={page} setPage={setPage} />}
+      {!debouncedSearch && totalPages > 0 && (
+        <PaginationControls 
+          page={page} 
+          setPage={setPage} 
+          totalPages={totalPages} 
+        />
+      )}
 
       {/* Pokemon grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -245,7 +158,13 @@ export const Pokedex = () => {
       )}
     </div>
 
-      {!debouncedSearch && <PaginationControls page={page} setPage={setPage} />}
+      {!debouncedSearch && totalPages > 0 && (
+        <PaginationControls 
+          page={page} 
+          setPage={setPage} 
+          totalPages={totalPages} 
+        />
+      )}
     </div>
   );
 };
