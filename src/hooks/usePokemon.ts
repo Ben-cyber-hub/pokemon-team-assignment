@@ -9,15 +9,20 @@ import { Pokemon, PokemonListResponse } from '../types/pokemon.types';
  * //@returns Query object containing the Pokemon list data, loading state, and error state
  */
 export const usePokemonList = (page: number = 1, pageSize: number = 20) => {
-  const offset = (page - 1) * pageSize;
-  return useQuery<PokemonListResponse>(['pokemonList', page], 
-    () => getPokemonList(offset, pageSize),
-    {
-      keepPreviousData: true, // Keeps old data while fetching new data
-      staleTime: 5 * 60 * 1000, // Cache data for 5 minutes before refetching
-    }
-  );
-};
+    return useQuery<PokemonListResponse>(
+      ['pokemonList', page], 
+      () => getPokemonList({ 
+        page, 
+        limit: pageSize,
+        generation: 'gen1' 
+      }),
+      {
+        keepPreviousData: true, // Keeps old data while fetching new data
+        staleTime: 5 * 60 * 1000, // Cache data for 5 minutes before refetching
+      }
+    );
+  };
+  
 
 /**
  * Hook to fetch detailed Pokemon information by name or ID
