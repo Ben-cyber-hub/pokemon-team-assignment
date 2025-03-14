@@ -1,3 +1,4 @@
+// Mocked data for testing purposes
 export const mockPokemon = {
   id: 1,
   name: 'bulbasaur',
