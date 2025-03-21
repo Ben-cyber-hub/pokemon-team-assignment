@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
 import { TeamDetails } from '../TeamDetails';
+import { renderWithProviders, createMockUser } from '../../utils/test-utils';
 
 // Mock useParams hook
 jest.mock('react-router-dom', () => ({
@@ -12,20 +12,20 @@ jest.mock('react-router-dom', () => ({
 
 describe('TeamDetails Page', () => {
   it('renders without crashing', () => {
-    render(
-      <BrowserRouter>
-        <TeamDetails />
-      </BrowserRouter>
-    );
+    const mockUser = createMockUser();
+    renderWithProviders(<TeamDetails />, { 
+      authProps: { user: mockUser },
+      route: '/teams/1'
+    });
     expect(screen.getByText('Team Details')).toBeInTheDocument();
   });
 
   it('displays team ID from URL parameters', () => {
-    render(
-      <BrowserRouter>
-        <TeamDetails />
-      </BrowserRouter>
-    );
+    const mockUser = createMockUser();
+    renderWithProviders(<TeamDetails />, {
+      authProps: { user: mockUser },
+      route: '/teams/1'
+    });
     expect(screen.getByRole('heading')).toBeInTheDocument();
   });
 });

@@ -7,12 +7,14 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+env:
+  REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
+  REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
     env:
-      REACT_APP_SUPABASE_URL: ${{ secrets.REACT_APP_SUPABASE_URL }}
-      REACT_APP_SUPABASE_ANON_KEY: ${{ secrets.REACT_APP_SUPABASE_ANON_KEY }}
       CI: false
     
     steps:

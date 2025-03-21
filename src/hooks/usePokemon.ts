@@ -26,17 +26,34 @@ export const usePokemonList = (page: number = 1, pageSize: number = 20) => {
 
 /**
  * Hook to fetch detailed Pokemon information by name or ID
- * @param nameOrId - Pokemon name (string) or ID (number)
- * @returns Query object containing the Pokemon data, loading state, and error state
  */
 export const usePokemonDetails = (nameOrId: string | number) => {
-  return useQuery<Pokemon>(['pokemon', nameOrId],
-    () => typeof nameOrId === 'string' 
-      ? getPokemonByName(nameOrId)
-      : getPokemonById(nameOrId as number),
+  return useQuery<Pokemon | null, Error>(
+    ['pokemon', nameOrId],
+    async () => {
+      try {
+        const result = typeof nameOrId === 'string' 
+          ? await getPokemonByName(nameOrId)
+          : await getPokemonById(nameOrId);
+        
+        if (!result) {
+          throw new Error(`Pokemon ${nameOrId} not found`);
+        }
+        
+        return result;
+      } catch (error) {
+        throw error instanceof Error 
+          ? error 
+          : new Error('Failed to fetch Pokemon');
+      }
+    },
     {
-      enabled: !!nameOrId, // Only fetch when nameOrId is provided
+      enabled: !!nameOrId,
       staleTime: 5 * 60 * 1000,
+      retry: (failureCount, error) => {
+        if (error.message.includes('not found')) return false;
+        return failureCount < 2;
+      }
     }
   );
 };
@@ -56,4 +73,4 @@ export const usePokemonsByType = (type: string) => {
   );
 };
 
-export {};
+export { usePokemonData } from './usePokemonData';

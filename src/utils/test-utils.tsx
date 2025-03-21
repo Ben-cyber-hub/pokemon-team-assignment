@@ -1,56 +1,86 @@
 import React from 'react';
-import { render, RenderOptions, screen, waitFor } from '@testing-library/react';
+import { render, RenderOptions as RTLRenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
+import { AuthContext, AuthContextType } from '../contexts/AuthContext';
+import { User } from '@supabase/supabase-js';
 
 // Create a new QueryClient for each test
-function createTestQueryClient() {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-        cacheTime: 0,
-        refetchOnWindowFocus: false,
-      },
+const createTestQueryClient = () => new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
     },
-    logger: {
-      log: console.log,
-      warn: console.warn,
-      error: () => {},
-    }
-  });
-}
+  },
+});
 
-interface CustomRenderOptions extends Omit<RenderOptions, 'wrapper'> {
-  withRouter?: boolean;
-}
+export const createMockUser = (): User => ({
+  id: '1',
+  email: 'test@test.com',
+  app_metadata: {},
+  user_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+  role: '',
+  updated_at: new Date().toISOString(),
+});
 
-function customRender(
-  ui: React.ReactElement,
-  { withRouter = true, ...options }: CustomRenderOptions = {}
-) {
-  const testQueryClient = createTestQueryClient();
-  
-  function Wrapper({ children }: { children: React.ReactNode }) {
-    const content = (
-      <QueryClientProvider client={testQueryClient}>
-        {children}
-      </QueryClientProvider>
-    );
-
-    return withRouter ? <BrowserRouter>{content}</BrowserRouter> : content;
-  }
-
-  return {
-    ...render(ui, { wrapper: Wrapper, ...options }),
-    queryClient: testQueryClient,
+// Custom render options extending RTL's options
+interface CustomRenderOptions extends Omit<RTLRenderOptions, 'wrapper'> {
+  route?: string;
+  authProps?: {
+    user?: User | null;
+    loading?: boolean;
   };
 }
 
-export * from '@testing-library/react';
-export { customRender as render };
+// Custom render result including auth context
+interface CustomRenderResult {
+  authContext: jest.Mocked<AuthContextType>;
+}
 
-// Mocked data for testing purposes
+export const renderWithProviders = (
+  ui: React.ReactElement,
+  options?: CustomRenderOptions
+) => {
+  const queryClient = createTestQueryClient();
+  
+  // Create mock auth context with Jest mock functions
+  const mockAuthContext: jest.Mocked<AuthContextType> = {
+    user: options?.authProps?.user ?? null,
+    loading: options?.authProps?.loading ?? false,
+    signIn: jest.fn(),
+    signUp: jest.fn(),
+    signOut: jest.fn(),
+  };
+
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      <AuthContext.Provider value={mockAuthContext}>
+        {options?.route ? (
+          <MemoryRouter initialEntries={[options.route]}>
+            {children}
+          </MemoryRouter>
+        ) : (
+          <BrowserRouter>{children}</BrowserRouter>
+        )}
+      </AuthContext.Provider>
+    </QueryClientProvider>
+  );
+
+  const renderResult = render(ui, { wrapper: Wrapper, ...options });
+
+  return {
+    ...renderResult,
+    authContext: mockAuthContext,
+  } as typeof renderResult & CustomRenderResult;
+};
+
+// Export testing utilities
+export * from '@testing-library/react';
+export { renderWithProviders as render };
+
+// Mock Pokemon data for testing
 export const mockPokemon = {
   id: 1,
   name: 'bulbasaur',

@@ -1,111 +1,88 @@
-import { useMemo, useEffect } from 'react';
-import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react'; // Removed useEffect as no longer needed
+import { useQuery } from '@tanstack/react-query';
 import { getPokemonList, getPokemonByName } from '../services/pokemonAPI';
-import { Pokemon, Generation, PokemonType } from '../types/pokemon.types';
+import { Pokemon } from '../types/pokemon.types';
+import { PAGE_SIZE } from '../constants/pokemon';
 
+// Props for the hook
 interface UsePokemonDataProps {
-  generation: Generation;
-  selectedType: PokemonType | '';
   searchTerm: string;
   page: number;
-  pageSize: number;
+  pageSize?: number;
 }
 
-export function usePokemonData({ 
-  generation, 
-  selectedType, 
-  searchTerm, 
-  page, 
-  pageSize 
-}: UsePokemonDataProps) {
-  const queryClient = useQueryClient();
+// Return type for better type safety and documentation
+interface PokemonDataResult {
+  pokemon: (Pokemon | null)[]; // Can be null if Pokemon fetch fails
+  isLoading: boolean;
+  error: Error | null;
+  totalPages: number;
+  totalPokemon: number;
+  currentPage: number;
+}
 
-  // First, get the base Pokemon list for the generation
-  const { data: pokemonList, isLoading: isLoadingList } = useQuery(
-    ['pokemonList', generation],
-    () => getPokemonList({ page: 1, limit: 1000, generation }),
+/**
+ * Hook to fetch and manage Pokemon data with pagination and search
+ * Handles failed Pokemon fetches gracefully by returning null entries
+ */
+export function usePokemonData({
+  searchTerm,
+  page,
+  pageSize = PAGE_SIZE
+}: UsePokemonDataProps): PokemonDataResult {
+  // Fetch basic Pokemon list with pagination
+  const { data: pokemonList, isLoading: isLoadingList, error: listError } = useQuery(
+    ['pokemonList', page, pageSize],
+    () => getPokemonList({ page, limit: pageSize }),
     {
-      staleTime: Infinity,
+      keepPreviousData: true,
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+      retryDelay: 1000,
+      useErrorBoundary: false
     }
   );
 
-  // Filter and paginate the list before fetching details
-  const filteredIndices = useMemo(() => {
-    if (!pokemonList?.results) return [];
-    
-    let filtered = pokemonList.results;
-
-    // Apply search filter if present
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(p => 
-        p.name.toLowerCase().includes(searchLower) ||
-        p.url.split('/').slice(-2, -1)[0].includes(searchLower)
+  // Fetch detailed Pokemon data for the current page
+  const { data: pokemonDetails, isLoading: isLoadingDetails } = useQuery(
+    ['pokemonDetails', pokemonList?.results],
+    async () => {
+      if (!pokemonList?.results) return [];
+      
+      const details = await Promise.allSettled(
+        pokemonList.results.map(p => getPokemonByName(p.name))
       );
-    }
 
-    return filtered;
-  }, [pokemonList, searchTerm]);
-
-  // Fetch all Pokemon details for the filtered list
-  const detailQueries = useQueries({
-    queries: filteredIndices.map(pokemon => ({
-      queryKey: ['pokemon', pokemon.name],
-      queryFn: () => getPokemonByName(pokemon.name),
+      return details.map(result => 
+        result.status === 'fulfilled' ? result.value : null
+      );
+    },
+    {
+      enabled: !!pokemonList?.results,
       staleTime: 5 * 60 * 1000,
-      cacheTime: 30 * 60 * 1000,
-    }))
-  });
-
-  // Process results with type filtering and pagination
-  const {
-    displayedPokemon,
-    totalPokemon,
-    computedTotalPages
-  } = useMemo(() => {
-    // Get all successfully loaded Pokemon
-    const loadedPokemon = detailQueries
-      .map(query => query.data)
-      .filter((pokemon): pokemon is Pokemon => !!pokemon);
-
-    // Apply type filtering
-    let typeFiltered = loadedPokemon;
-    if (selectedType) {
-      typeFiltered = loadedPokemon.filter(pokemon => 
-        pokemon.types.some(t => t.type.name === selectedType)
-      );
+      retry: 1,
+      retryDelay: 1000,
+      useErrorBoundary: false
     }
+  );
 
-    // Calculate pagination
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const paginatedPokemon = typeFiltered.slice(startIndex, endIndex);
+  // Filter Pokemon based on search term
+  const filteredPokemon = useMemo(() => {
+    if (!pokemonDetails) return [];
+    if (!searchTerm) return pokemonDetails;
 
-    return {
-      displayedPokemon: paginatedPokemon,
-      totalPokemon: typeFiltered.length,
-      computedTotalPages: Math.ceil(typeFiltered.length / pageSize)
-    };
-  }, [detailQueries, selectedType, page, pageSize]);
-
-  // Prefetch next page
-  useEffect(() => {
-    if (page < computedTotalPages) {
-      const nextPageStart = page * pageSize;
-      const nextPageEnd = nextPageStart + pageSize;
-      filteredIndices.slice(nextPageStart, nextPageEnd).forEach(pokemon => {
-        queryClient.prefetchQuery(
-          ['pokemon', pokemon.name],
-          () => getPokemonByName(pokemon.name)
-        );
-      });
-    }
-  }, [page, pageSize, computedTotalPages, filteredIndices, queryClient]);
+    const searchLower = searchTerm.toLowerCase();
+    return pokemonDetails.filter(p => 
+      p?.name?.toLowerCase().includes(searchLower)
+    );
+  }, [pokemonDetails, searchTerm]);
 
   return {
-    pokemon: displayedPokemon,
-    isLoading: isLoadingList || detailQueries.some(query => query.isLoading),
-    totalPages: computedTotalPages,
-    totalPokemon
+    pokemon: filteredPokemon || [],
+    isLoading: isLoadingList || isLoadingDetails,
+    error: listError instanceof Error ? listError : null,
+    totalPages: pokemonList?.totalPages || 57,
+    totalPokemon: pokemonList?.count || 1126,
+    currentPage: page
   };
 }

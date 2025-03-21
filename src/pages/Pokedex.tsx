@@ -1,111 +1,72 @@
 import { useState, useEffect } from 'react';
 import { usePokemonData } from '../hooks/usePokemonData';
-import { Pokemon, Generation, PokemonType } from '../types/pokemon.types';
+import { Pokemon } from '../types/pokemon.types';
 import { useDebounce } from '../hooks/useDebounce';
 import { PokemonCard } from '../components/pokemon/pokemonCard';
-
-// Move constants to a separate file
-import { POKEMON_TYPES, GENERATION_LABELS, PAGE_SIZE } from '../constants/pokemon';
-
-// TODO: Import these when implementing team building
-// import { useTeam } from '../hooks/useTeam';
-// import { useAuth } from '../hooks/useAuth';
-
-// Separate PaginationControls into its own component file
 import { PaginationControls } from '../components/common/PaginationControls';
+import { PAGE_SIZE } from '../constants/pokemon';
 
 export const Pokedex = () => {
-  // Basic state
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [generation, setGeneration] = useState<Generation>('gen1');
-  const [selectedType, setSelectedType] = useState<PokemonType | ''>('');
-  
-  // TODO: Add these when implementing team building
-  // const { user } = useAuth();
-  // const { addPokemonToTeam, isTeamBuilding } = useTeam();
-
   const debouncedSearch = useDebounce(searchTerm, 300);
 
   const { 
     pokemon: displayedPokemon, 
     isLoading, 
+    error,
     totalPages,
     totalPokemon 
   } = usePokemonData({
-    generation,
-    selectedType,
     searchTerm: debouncedSearch,
     page,
     pageSize: PAGE_SIZE
   });
 
   const handlePokemonClick = (pokemon: Pokemon) => {
-    // TODO: Implement Pokemon selection for team building
+    if (!pokemon) return;
     console.log('Selected Pokemon:', pokemon);
-    /* 
-    Future implementation:
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-
-    if (isTeamBuilding) {
-      addPokemonToTeam(pokemon);
-    } else {
-      showPokemonDetails(pokemon);
-    }
-    */
   };
 
   useEffect(() => {
     setPage(1);
-  }, [generation, selectedType, debouncedSearch]);
+  }, [debouncedSearch]);
 
   if (isLoading) {
     return <div className="text-center">Loading Pokémon...</div>;
   }
 
+  if (error) {
+    return (
+      <div className="text-center p-4">
+        <div className="text-red-600 font-semibold mb-2">
+          Unable to load Pokémon data
+        </div>
+        <div className="text-gray-600 text-sm">
+          Please try again later or check your internet connection.
+        </div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4">
       <h1 className="text-3xl font-bold mb-6">Pokédex</h1>
-      
-      {/* Filters section */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        <select
-          aria-label="generation"
-          value={generation}
-          onChange={(e) => setGeneration(e.target.value as Generation)}
-          className="w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {Object.entries(GENERATION_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
 
-        <select
-          aria-label="type"
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.target.value as PokemonType | '')}
-          className="w-full sm:w-48 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All Types</option>
-          {POKEMON_TYPES.map(type => (
-            <option key={type} value={type} className="capitalize">
-              {type}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Search bar */}
+      {/* Search */}
       <div className="mb-6">
         <div className="relative max-w-md mx-auto">
           <input 
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search across all Pokémon..."
+            placeholder="Search by Pokémon name..."
             className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10"
           />
           <svg 
@@ -129,7 +90,7 @@ export const Pokedex = () => {
         Showing {displayedPokemon.length} of {totalPokemon} Pokémon
       </div>
 
-      {/* Show pagination only when not searching */}
+      {/* Pagination */}
       {!debouncedSearch && totalPages > 0 && (
         <PaginationControls 
           page={page} 
@@ -139,25 +100,26 @@ export const Pokedex = () => {
       )}
 
       {/* Pokemon grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-      {(displayedPokemon ?? []).length > 0 ? (
-        displayedPokemon.map((pokemon) => (
-          <PokemonCard 
-            key={pokemon.id} 
-            pokemon={pokemon}
-            onClick={handlePokemonClick}
-          />
-        ))
-      ) : (
-        <div className="col-span-full text-center py-8 text-gray-500">
-          {debouncedSearch 
-            ? `No Pokémon found matching "${searchTerm}"`
-            : 'No Pokémon found for selected filters'
-          }
-        </div>
-      )}
-    </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {displayedPokemon.length > 0 ? (
+          displayedPokemon.map((pokemon, index) => (
+            <PokemonCard 
+              key={pokemon?.id || `pokemon-${index}`}
+              pokemon={pokemon}
+              onClick={pokemon ? handlePokemonClick : undefined}
+            />
+          ))
+        ) : (
+          <div className="col-span-full text-center py-8 text-gray-500">
+            {debouncedSearch 
+              ? `No Pokémon found matching "${searchTerm}"`
+              : 'No Pokémon available'
+            }
+          </div>
+        )}
+      </div>
 
+      {/* Bottom pagination */}
       {!debouncedSearch && totalPages > 0 && (
         <PaginationControls 
           page={page} 

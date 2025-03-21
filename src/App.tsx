@@ -7,13 +7,12 @@ import { Pokedex } from './pages/Pokedex';
 import { Teams } from './pages/Teams';
 import { TeamDetails } from './pages/TeamDetails';
 import { NotFound } from './pages/NotFound';
-// TODO: Add these components when implementing auth
-// import { Login } from './pages/Login';
-// import { Register } from './pages/Register';
-// import { Profile } from './pages/Profile';
-// import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { AuthProvider } from './contexts/AuthContext';
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
@@ -23,35 +22,50 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
+// Base App component for testing
+export function App() {
+  return (
+    <div data-testid="app-root" className="min-h-screen bg-gray-50">
+      <NavBar />
+      <main role="main" className="container mx-auto px-4 py-8 max-w-7xl">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/pokedex" element={<Pokedex />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route 
+            path="/teams" 
+            element={
+              <ProtectedRoute>
+                <Teams />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/teams/:id" 
+            element={
+              <ProtectedRoute>
+                <TeamDetails />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+// Wrapped version with all providers
+export default function AppWithProviders() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router basename={process.env.PUBLIC_URL}>
-        <div className="min-h-screen bg-gray-100">
-          <NavBar />
-          <main className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/pokedex" element={<Pokedex />} />
-              {/* TODO: Protect these routes once auth is implemented */}
-              <Route path="/teams" element={<Teams />} />
-              <Route path="/teams/:id" element={<TeamDetails />} />
-              {/* TODO: Add these routes when implementing auth */}
-              {/* <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              } /> */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
-        </div>
-      </Router>
+      <AuthProvider>
+        <Router basename="/pokemon-team-assignment">
+          <App />
+        </Router>
+      </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }
-
-export default App;
