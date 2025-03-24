@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 
-interface CreateTeamModalProps {
+export interface CreateTeamModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: { team_name: string; team_description?: string }) => Promise<void>;

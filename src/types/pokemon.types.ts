@@ -3,32 +3,30 @@
 import { GENERATION_RANGES } from '../constants/pokemon';
 export { GENERATION_RANGES };
 
+import { PokemonType } from '../utils/typeCalculations';
+
 export const POKEMON_TYPES = [
   'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground',
   'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
 ] as const;
 
-export type PokemonType = typeof POKEMON_TYPES[number];
-
 // Simplified types
 export interface Pokemon {
   id: number;
   name: string;
-  types: Array<{
-    slot: number;
-    type: {
-      name: string;
-      url: string;
-    }
-  }>;
   sprites: {
     front_default: string;
     other?: {
       'official-artwork': {
         front_default: string;
-      }
-    }
+      };
+    };
   };
+  types: {
+    type: {
+      name: PokemonType;
+    };
+  }[];
 }
 
 export interface PokemonStat {

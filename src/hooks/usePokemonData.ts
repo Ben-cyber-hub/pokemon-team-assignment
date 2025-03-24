@@ -1,4 +1,4 @@
-import { useMemo } from 'react'; // Removed useEffect as no longer needed
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getPokemonList, getPokemonByName } from '../services/pokemonAPI';
 import { Pokemon } from '../types/pokemon.types';
@@ -23,7 +23,9 @@ interface PokemonDataResult {
 
 /**
  * Hook to fetch and manage Pokemon data with pagination and search
- * Handles failed Pokemon fetches gracefully by returning null entries
+ * @param searchTerm - Term to filter Pokemon by name
+ * @param page - Current page number
+ * @param pageSize - Number of Pokemon per page
  */
 export function usePokemonData({
   searchTerm,
@@ -31,40 +33,29 @@ export function usePokemonData({
   pageSize = PAGE_SIZE
 }: UsePokemonDataProps): PokemonDataResult {
   // Fetch basic Pokemon list with pagination
-  const { data: pokemonList, isLoading: isLoadingList, error: listError } = useQuery(
-    ['pokemonList', page, pageSize],
-    () => getPokemonList({ page, limit: pageSize }),
-    {
-      keepPreviousData: true,
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-      retryDelay: 1000,
-      useErrorBoundary: false
-    }
-  );
+  const { data: pokemonList, isLoading: isLoadingList, error: listError } = useQuery({
+    queryKey: ['pokemonList', page, pageSize],
+    queryFn: () => getPokemonList({ page, limit: pageSize }),
+    keepPreviousData: true,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+    retryDelay: 1000
+  });
 
-  // Fetch detailed Pokemon data for the current page
-  const { data: pokemonDetails, isLoading: isLoadingDetails } = useQuery(
-    ['pokemonDetails', pokemonList?.results],
-    async () => {
+  // Fetch detailed Pokemon data
+  const { data: pokemonDetails, isLoading: isLoadingDetails } = useQuery({
+    queryKey: ['pokemonDetails', pokemonList?.results],
+    queryFn: async () => {
       if (!pokemonList?.results) return [];
-      
       const details = await Promise.allSettled(
         pokemonList.results.map(p => getPokemonByName(p.name))
       );
-
       return details.map(result => 
         result.status === 'fulfilled' ? result.value : null
       );
     },
-    {
-      enabled: !!pokemonList?.results,
-      staleTime: 5 * 60 * 1000,
-      retry: 1,
-      retryDelay: 1000,
-      useErrorBoundary: false
-    }
-  );
+    enabled: !!pokemonList?.results
+  });
 
   // Filter Pokemon based on search term
   const filteredPokemon = useMemo(() => {
@@ -78,11 +69,11 @@ export function usePokemonData({
   }, [pokemonDetails, searchTerm]);
 
   return {
-    pokemon: filteredPokemon || [],
+    pokemon: filteredPokemon,
     isLoading: isLoadingList || isLoadingDetails,
     error: listError instanceof Error ? listError : null,
-    totalPages: pokemonList?.totalPages || 57,
-    totalPokemon: pokemonList?.count || 1126,
+    totalPages: pokemonList?.totalPages || 1,
+    totalPokemon: pokemonList?.count || 0,
     currentPage: page
   };
 }

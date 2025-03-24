@@ -1,14 +1,26 @@
 import { Generation } from '../types/pokemon.types';
 
+/**
+ * All available Pokemon types in the game
+ * Used for type analysis and UI display
+ */
 export const POKEMON_TYPES = [
-  'normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground',
-  'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
+  'normal', 'fire', 'water', 'electric', 'grass', 'ice', 
+  'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 
+  'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'
 ] as const;
 
-export const POKEMON_PER_ROW = 5; // Changed from 6
+/**
+ * Pagination and grid layout constants
+ * Used for consistent Pokemon display across components
+ */
+export const POKEMON_PER_ROW = 5;
 export const ROWS_PER_PAGE = 4;
-export const PAGE_SIZE = POKEMON_PER_ROW * ROWS_PER_PAGE; // Will be 20
+export const PAGE_SIZE = POKEMON_PER_ROW * ROWS_PER_PAGE; 
 
+/**
+ * Generation labels for UI display
+ */
 export const GENERATION_LABELS: Record<Generation, string> = {
   gen1: 'Generation I',
   gen2: 'Generation II',
@@ -21,6 +33,10 @@ export const GENERATION_LABELS: Record<Generation, string> = {
   gen9: 'Generation IX',
 };
 
+/**
+ * Pokemon ID ranges for each generation
+ * Used for filtering and navigation
+ */
 export const GENERATION_RANGES: Record<Generation, { start: number; end: number }> = {
   gen1: { start: 1, end: 151 },
   gen2: { start: 152, end: 251 },

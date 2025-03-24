@@ -1,0 +1,47 @@
+/* Pokemon Type Colors - Following Official Game Colors */
+:root {
+  --type-normal: #A8A878;
+  --type-fire: #F08030;
+  --type-water: #6890F0;
+  --type-electric: #F8D030;
+  --type-grass: #78C850;
+  --type-ice: #98D8D8;
+  --type-fighting: #C03028;
+  --type-poison: #A040A0;
+  --type-ground: #E0C068;
+  --type-flying: #A890F0;
+  --type-psychic: #F85888;
+  --type-bug: #A8B820;
+  --type-rock: #B8A038;
+  --type-ghost: #705898;
+  --type-dragon: #7038F8;
+  --type-dark: #705848;
+  --type-steel: #B8B8D0;
+  --type-fairy: #EE99AC;
+}
+
+/* Type Background Classes */
+.bg-type-normal { background-color: var(--type-normal); }
+.bg-type-fire { background-color: var(--type-fire); }
+.bg-type-water { background-color: var(--type-water); }
+.bg-type-electric { background-color: var(--type-electric); }
+.bg-type-grass { background-color: var(--type-grass); }
+.bg-type-ice { background-color: var(--type-ice); }
+.bg-type-fighting { background-color: var(--type-fighting); }
+.bg-type-poison { background-color: var(--type-poison); }
+.bg-type-ground { background-color: var(--type-ground); }
+.bg-type-flying { background-color: var(--type-flying); }
+.bg-type-psychic { background-color: var(--type-psychic); }
+.bg-type-bug { background-color: var(--type-bug); }
+.bg-type-rock { background-color: var(--type-rock); }
+.bg-type-ghost { background-color: var(--type-ghost); }
+.bg-type-dragon { background-color: var(--type-dragon); }
+.bg-type-dark { background-color: var(--type-dark); }
+.bg-type-steel { background-color: var(--type-steel); }
+.bg-type-fairy { background-color: var(--type-fairy); }
+
+/* Hover State Classes */
+.hover\:bg-type-normal:hover { background-color: color-mix(in srgb, var(--type-normal) 85%, black); }
+.hover\:bg-type-fire:hover { background-color: color-mix(in srgb, var(--type-fire) 85%, black); }
+.hover\:bg-type-water:hover { background-color: color-mix(in srgb, var(--type-water) 85%, black); }
+/* ...add hover states for other types... */

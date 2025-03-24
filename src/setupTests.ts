@@ -1,41 +1,44 @@
-// jest-dom adds custom jest matchers for asserting on DOM nodes.
-// allows you to do things like:
-// expect(element).toHaveTextContent(/react/i)
-// learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+import { QueryClient } from '@tanstack/react-query';
+import { config } from 'dotenv';
 
-// Mock IntersectionObserver
-const mockIntersectionObserver = jest.fn();
-mockIntersectionObserver.mockReturnValue({
-  observe: () => null,
-  unobserve: () => null,
-  disconnect: () => null
+// Load environment variables from .env.test
+config({ path: '.env.test' });
+
+// Declare module augmentation for test environment
+declare module '@testing-library/react' {
+  interface RenderOptions {
+    queryClient?: QueryClient;
+  }
+}
+
+// Create global QueryClient for tests
+declare global {
+  interface Window {
+    queryClient: QueryClient;
+  }
+}
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      cacheTime: 0,
+    },
+  },
 });
-window.IntersectionObserver = mockIntersectionObserver;
 
 // Mock ResizeObserver
-window.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
 
-// Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+global.ResizeObserver = ResizeObserverMock;
 
-// Suppress React Query dev tools error
-jest.mock('@tanstack/react-query-devtools', () => ({
-  ReactQueryDevtools: () => null
-}));
+// Assign to window object for global access in tests
+window.queryClient = queryClient;
+
+// Make this a module
+export { queryClient };

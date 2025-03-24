@@ -2,25 +2,61 @@ import { Dialog } from '@headlessui/react';
 import { useState } from 'react';
 import { Team } from '../../types/team.types';
 
-interface ShareTeamModalProps {
+export interface ShareTeamModalProps {
+  /** The team data to be shared */
   team: Team;
+  /** Controls modal visibility */
   isOpen: boolean;
+  /** Handler for closing the modal */
   onClose: () => void;
+  /** Handler for updating team sharing status */
   onUpdateSharing: (isPublic: boolean) => Promise<void>;
 }
 
-export const ShareTeamModal = ({ team, isOpen, onClose, onUpdateSharing }: ShareTeamModalProps) => {
+/**
+ * ShareTeamModal Component
+ * 
+ * Provides interface for managing team sharing settings and copying share links.
+ * Handles public/private toggle and share URL generation.
+ * 
+ * @example
+ * ```tsx
+ * <ShareTeamModal
+ *   team={team}
+ *   isOpen={isModalOpen}
+ *   onClose={() => setIsModalOpen(false)}
+ *   onUpdateSharing={async (isPublic) => {
+ *     await updateTeam({ ...team, is_public: isPublic });
+ *   }}
+ * />
+ * ```
+ */
+export const ShareTeamModal = ({ 
+  team, 
+  isOpen, 
+  onClose, 
+  onUpdateSharing 
+}: ShareTeamModalProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const shareUrl = `${window.location.origin}/pokemon-team-assignment/shared-teams/${team.team_code}`;
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy link:', error);
+    }
   };
 
   const handleTogglePublic = async () => {
     try {
       setIsUpdating(true);
       await onUpdateSharing(!team.is_public);
+    } catch (error) {
+      console.error('Failed to update sharing status:', error);
     } finally {
       setIsUpdating(false);
     }
@@ -68,6 +104,7 @@ export const ShareTeamModal = ({ team, isOpen, onClose, onUpdateSharing }: Share
                     Copy
                   </button>
                 </div>
+                {copySuccess && <span className="text-green-500 text-sm">Link copied!</span>}
               </div>
             )}
           </div>

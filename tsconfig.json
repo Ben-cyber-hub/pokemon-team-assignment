@@ -21,16 +21,18 @@
     "jsx": "react-jsx",
     "baseUrl": "src",
     "paths": {
-      "@/*": ["*"]
+      "@/*": ["*"],
+      "@test-utils": ["utils/test-utils"]
     },
     "noUnusedLocals": false,
     "noUnusedParameters": true,
-    "incremental": true
+    "incremental": true,
+    "types": ["jest", "node"]
   },
   "include": [
-    "src",
-    "**/*.ts",
-    "**/*.tsx"
+    "src/**/*",
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules"

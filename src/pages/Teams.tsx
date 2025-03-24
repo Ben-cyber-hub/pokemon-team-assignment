@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTeams } from '../hooks/useTeams';
-import { CreateTeamModal } from '../components/teams/CreateTeamModal';
+import { CreateTeamModal } from '../components/teams';
 
 export const Teams = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -15,10 +15,17 @@ export const Teams = () => {
       console.error('Failed to create team:', error);
       throw error; // This will be caught by the modal's error handling
     }
-  };
+  }; 
 
   if (isLoadingTeams) {
-    return <div className="text-center">Loading teams...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="text-center text-gray-600">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto mb-2"></div>
+          <p>Loading teams...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
