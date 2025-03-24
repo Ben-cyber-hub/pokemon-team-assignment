@@ -3,7 +3,7 @@ import { render, RenderOptions as RTLRenderOptions } from '@testing-library/reac
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { AuthContext, AuthContextType } from '../contexts/AuthContext';
-import { User } from '@supabase/supabase-js';
+import { User } from '../types/auth.types';
 
 // Create a new QueryClient for each test
 const createTestQueryClient = () => new QueryClient({
@@ -17,12 +17,8 @@ const createTestQueryClient = () => new QueryClient({
 export const createMockUser = (): User => ({
   id: '1',
   email: 'test@test.com',
-  app_metadata: {},
-  user_metadata: {},
-  aud: 'authenticated',
-  created_at: new Date().toISOString(),
-  role: '',
-  updated_at: new Date().toISOString(),
+  username: 'test',
+  created_at: new Date().toISOString()
 });
 
 // Custom render options extending RTL's options

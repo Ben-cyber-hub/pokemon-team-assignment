@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '@supabase/supabase-js';
+import { User, mapSupabaseUser } from '../types/auth.types';
 import { supabase } from '../lib/supabase';
 import { validateEmail, validatePassword } from '../utils/validation';
 
@@ -20,14 +20,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check active sessions and sets the user
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      setUser(session ? mapSupabaseUser(session.user) : null);
       setLoading(false);
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      setUser(session ? mapSupabaseUser(session.user) : null);
       setLoading(false);
     });
 

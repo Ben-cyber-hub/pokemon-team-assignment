@@ -14,7 +14,8 @@ export const PokemonCard = ({ pokemon, onClick }: PokemonCardProps): ReactElemen
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-md p-2 hover:shadow-lg transition-shadow cursor-pointer"
+      className={`bg-white rounded-lg shadow-md p-2 hover:shadow-lg transition-shadow
+        ${onClick ? 'cursor-pointer' : ''}`}
       onClick={() => onClick?.(pokemon)}
     >
       <div className="w-full aspect-square">
@@ -26,6 +27,7 @@ export const PokemonCard = ({ pokemon, onClick }: PokemonCardProps): ReactElemen
       </div>
       <div className="mt-1 text-center">
         <h3 className="text-sm font-semibold capitalize">{pokemon.name}</h3>
+        <p className="text-sm capitalize">ID:{pokemon.id}</p>
         {pokemon.types && (
           <div className="flex flex-wrap justify-center gap-1 mt-1">
             {pokemon.types.map((type) => (

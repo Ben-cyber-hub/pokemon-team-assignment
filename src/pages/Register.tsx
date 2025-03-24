@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { profilesAPI } from '../services/profilesAPI';
+import { supabase } from '../lib/supabase';
 
 export const Register = () => {
   const [email, setEmail] = useState('');
@@ -17,11 +19,25 @@ export const Register = () => {
     setIsLoading(true);
 
     try {
+      // First attempt to sign up
       const { needsEmailConfirmation } = await signUp(email, password);
+      
       if (needsEmailConfirmation) {
         setNeedsConfirmation(true);
       } else {
-        navigate('/pokedex');
+        // For development/testing, create profile right away
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await profilesAPI.createProfile(user.id, email);
+            navigate('/pokedex');
+          } else {
+            throw new Error('User not found after registration');
+          }
+        } catch (profileError) {
+          console.error('Profile creation failed:', profileError);
+          setError('Account created but profile setup failed. Please try logging in.');
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account');

@@ -1,6 +1,8 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { profilesAPI } from '../services/profilesAPI';
+import { supabase } from '../lib/supabase';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +19,13 @@ export const Login = () => {
 
     try {
       await signIn(email, password);
+      
+      // Ensure profile exists
+      const supabaseUser = await supabase.auth.getUser();
+      if (supabaseUser.data.user) {
+        await profilesAPI.createProfile(supabaseUser.data.user.id, email);
+      }
+      
       navigate('/teams');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to sign in');

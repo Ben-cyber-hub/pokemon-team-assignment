@@ -49,6 +49,7 @@ export function App() {
               </ProtectedRoute>
             } 
           />
+          <Route path="/shared-teams/:code" element={<TeamDetails />} /> {/* No protection for shared teams */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
