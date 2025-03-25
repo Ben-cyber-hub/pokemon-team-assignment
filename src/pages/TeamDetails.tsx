@@ -6,6 +6,7 @@ import { usePokemonDetails } from '../hooks/usePokemon';
 import { TeamPokemon } from '../types/team.types';
 import { TeamCoverage } from '../components/teams/TeamCoverage';
 import { ShareTeamModal } from '../components/teams/ShareTeamModal';
+import { EmptySlot } from '../components/teams';
 
 export const TeamDetails = () => {
   const { id, code } = useParams<{ id?: string; code?: string }>();
@@ -60,9 +61,11 @@ export const TeamDetails = () => {
               isSharedView={isSharedView}
             />
           ) : (
-            <div key={index} className="aspect-square bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
-              <span className="text-gray-400">Empty slot</span>
-            </div>
+            <EmptySlot 
+              key={index}
+              position={index + 1}
+              teamId={team.team_id}
+            />
           );
         })}
       </div>

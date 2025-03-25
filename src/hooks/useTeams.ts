@@ -12,14 +12,20 @@ export function useTeams(teamId?: string) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  console.log('useTeams called with:', { teamId, userId: user?.id });
+
   const { data: team, isLoading: isLoadingTeam } = useQuery(
     ['team', teamId],
     () => teamsAPI.getTeam(teamId!),
     { 
-      enabled: !!teamId,
+      enabled: !!teamId && !!user,
       retry: 1
     }
   );
+
+  // Log ownership status - this is crucial for debugging
+  const isOwner = user && team && user.id === team.user_id;
+  console.log('Team ownership check:', { isOwner, teamUserId: team?.user_id, userId: user?.id });
 
   // Query for user's teams
   const { data: userTeams, isLoading: isLoadingTeams } = useQuery(
@@ -63,13 +69,15 @@ export function useTeams(teamId?: string) {
     }
   });
 
+  // Modified return value to include edit functions ONLY if user is the team owner
   return {
     team,
     userTeams,
     isLoadingTeam,
     isLoadingTeams,
     createTeam,
-    ...((teamId) ? {
+    // Only include editing functions if teamId exists AND user is the owner
+    ...((teamId && isOwner) ? {
       addPokemon,
       removePokemon,
       updateTeamSharing

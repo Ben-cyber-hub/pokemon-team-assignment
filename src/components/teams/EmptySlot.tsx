@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import { useTeams } from '../../hooks/useTeams';
 
 interface EmptySlotProps {
@@ -8,30 +8,53 @@ interface EmptySlotProps {
 
 export const EmptySlot = ({ position, teamId }: EmptySlotProps) => {
   const [pokemonId, setPokemonId] = useState('');
-  const { addPokemon } = useTeams(teamId);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  
+  // Get all team-related functions from useTeams
+  const { team, addPokemon } = useTeams(teamId);
+  
+  console.log('EmptySlot rendering:', { 
+    position, 
+    teamId, 
+    hasAddPokemon: !!addPokemon,
+    team: !!team
+  });
 
   const handleAddPokemon = async (e: FormEvent) => {
     e.preventDefault();
-    if (!addPokemon) return;
-    setError(null);
     
-    const id = parseInt(pokemonId);
-    if (!id || id < 1 || id > 1010) {
-      setError('Please enter a valid Pokémon ID (1-1010)');
+    if (!pokemonId) {
+      setError('Please enter a Pokemon ID');
+      return;
+    }
+
+    // Make sure addPokemon exists before trying to use it
+    if (!addPokemon) {
+      setError('Unable to add Pokemon - you may not have permission');
       return;
     }
 
     try {
-      await addPokemon.mutateAsync({ pokemon_id: id, position });
+      const id = parseInt(pokemonId, 10);
+      console.log('Adding Pokemon:', { pokemon_id: id, position, teamId });
+      await addPokemon.mutateAsync({ 
+        pokemon_id: id, 
+        position 
+      });
       setPokemonId('');
+      setError('');
     } catch (error) {
       setError('Failed to add Pokémon');
       console.error('Failed to add Pokemon:', error);
     }
   };
 
-  if (!addPokemon) return null;
+  if (!addPokemon) {
+    console.log('No addPokemon function available for team:', teamId);
+    return <div className="aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 p-4 flex items-center justify-center text-gray-500">
+      Empty Slot
+    </div>;
+  }
 
   return (
     <form 
