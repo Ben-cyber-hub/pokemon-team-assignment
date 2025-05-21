@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkpokemon_team_supporter=self.webpackChunkpokemon_team_supporter||[]).push([[198],{198:e=>{e.exports=function(){throw new Error("ws does not work in the browser. Browser clients must use the native WebSocket object")}}}]);
+//# sourceMappingURL=198.1136cc2b.chunk.js.map

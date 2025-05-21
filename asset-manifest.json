@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/pokemon-team-assignment/static/css/main.361998df.css",
+    "main.js": "/pokemon-team-assignment/static/js/main.a46ce413.js",
+    "static/js/198.1136cc2b.chunk.js": "/pokemon-team-assignment/static/js/198.1136cc2b.chunk.js",
+    "static/js/453.62cb8c13.chunk.js": "/pokemon-team-assignment/static/js/453.62cb8c13.chunk.js",
+    "index.html": "/pokemon-team-assignment/index.html",
+    "main.361998df.css.map": "/pokemon-team-assignment/static/css/main.361998df.css.map",
+    "main.a46ce413.js.map": "/pokemon-team-assignment/static/js/main.a46ce413.js.map",
+    "198.1136cc2b.chunk.js.map": "/pokemon-team-assignment/static/js/198.1136cc2b.chunk.js.map",
+    "453.62cb8c13.chunk.js.map": "/pokemon-team-assignment/static/js/453.62cb8c13.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.361998df.css",
+    "static/js/main.a46ce413.js"
+  ]
+}
